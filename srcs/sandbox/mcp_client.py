@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import Any
 
 from mcp import ClientSession, StdioServerParameters
@@ -42,7 +43,11 @@ class McpClient:
     def stdio_client(self, command: str, arg: str) -> None:
         """Spawn an MCP server as a subprocess and open a stdio session."""
         self._transport_cm = stdio_client(
-            StdioServerParameters(command=command, args=[arg])
+            StdioServerParameters(
+                command=command,
+                args=[arg],
+                env={**os.environ},
+            )
         )
         read, write = self.loop.run_until_complete(
             self._transport_cm.__aenter__()
