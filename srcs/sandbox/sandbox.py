@@ -87,8 +87,9 @@ class Sandbox:
                 raise ImportError(f"Import {name} not allowed")
             return builtins.__import__(name, *args, **kwargs)
 
-        def final_answer(code: str) -> None:
+        def final_answer(code: any) -> None:
             """Stop execution and submit ``code`` as the final answer."""
+            print(f"\n\n\n{code}\n\n\n")
             if not code:
                 raise ValueError("Not any code provided in final answer")
             else:
@@ -164,6 +165,7 @@ class Sandbox:
                 {
                     "type": "final_answer",
                     "answer": answer.args[0],
+
                 }
             )
         except Exception:
@@ -230,9 +232,11 @@ class Sandbox:
                 request = q_call.get(timeout=0.1)
             except queue.Empty:
                 continue
+            tool_start = time.monotonic()
             tool_result = self.mcp_client.call_tool(
                 request["tool"], request["args"]
             )
+            start_time += time.monotonic() - tool_start
             q_answer.put(tool_result)
         process.join()
         if not kill:
@@ -264,6 +268,7 @@ class Sandbox:
         for tool in list(self.mcp_client.list_tools().tools):
             result += f"\nname={tool.name}\n"
             result += f"description={tool.description}\n\n"
+            result += f"Input schema={tool.inputSchema}"
         return result
 
     def cli(
@@ -329,23 +334,6 @@ it with a bare `except`.
 - MBPP: final_answer(solution_code_str)
 - SWE-bench: final_answer(get_patch())
 
-## MCP tools
-Plain Python functions — call and print, e.g. print(search_code("x", "*.py")).
-They run outside the sandbox, so the limits below don't apply to them.
-
-## Restrictions
-- NameError builtins: eval, exec, compile, input, breakpoint, globals,
-  locals, vars, getattr, setattr, delattr, exit, quit.
-- open(): allowed dirs only, no file descriptors → PermissionError.
-- import: allowlist only → ImportError.
-- Dunder access (__class__, __globals__, …) → ValueError.
-- Network disabled (socket/HTTP/DNS → error).
-
-## Config
-- Imports: {{AUTHORIZED_IMPORTS}}
-- Directories: {{ALLOWED_DIRECTORIES}}
-- Memory: {{MAX_MEMORY_MB}} MB / Time: {{MAX_EXECUTION_TIME}} s per block
-  (exceed → process killed)
 
 ## MCP server
 - Tools: {{TOOLS}}
@@ -355,21 +343,21 @@ They run outside the sandbox, so the limits below don't apply to them.
 
         prompts = self.mcp_client.list_prompts()
         resources = self.mcp_client.list_resources()
-        template = template.replace(
-            "{{AUTHORIZED_IMPORTS}}",
-            ", ".join(self._config.authorized_imports),
-        )
-        template = template.replace(
-            "{{ALLOWED_DIRECTORIES}}",
-            ", ".join(self._config.allowed_directories),
-        )
-        template = template.replace(
-            "{{MAX_MEMORY_MB}}", str(self._config.max_memory_mb)
-        )
-        template = template.replace(
-            "{{MAX_EXECUTION_TIME}}",
-            str(self._config.max_execution_time_seconds),
-        )
+        # template = template.replace(
+        #     "{{AUTHORIZED_IMPORTS}}",
+        #     ", ".join(self._config.authorized_imports),
+        # )
+        # template = template.replace(
+        #     "{{ALLOWED_DIRECTORIES}}",
+        #     ", ".join(self._config.allowed_directories),
+        # )
+        # template = template.replace(
+        #     "{{MAX_MEMORY_MB}}", str(self._config.max_memory_mb)
+        # )
+        # template = template.replace(
+        #     "{{MAX_EXECUTION_TIME}}",
+        #     str(self._config.max_execution_time_seconds),
+        # )
         template = template.replace("{{TOOLS}}", self.get_clean_tools())
         template = template.replace("{{PROMPTS}}", str(prompts))
         template = template.replace("{{RESOURCES}}", str(resources))
