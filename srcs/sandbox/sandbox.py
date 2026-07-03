@@ -309,7 +309,7 @@ class Sandbox:
                 "Unable to connect the MCP server with the provided "
                 "informations, please try again"
             )
-
+ 
         print(self.get_man())
 
         print("Write or paste the code to evaluate, then press Ctrl-D:")
