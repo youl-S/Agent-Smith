@@ -1,4 +1,4 @@
-# Agent Smith — an autonomous code agent, built from scratch
+# Agent Smith — an autonomous code agent
 
 > A framework that gives an LLM a **Thought → Code → Observation** loop: the model
 > reasons, writes executable Python, runs it in a **home-made security sandbox**, reads
@@ -20,12 +20,11 @@ isolation · `uv`.
 
 ## Authors & contributions
 
-Built by a team of two over the 42 curriculum. Responsibilities below reflect the
-actual commit history.
+Built by a team of two over the 42 curriculum.
 
 ### Youl Simonnet — [@youl-S](https://github.com/youl-S)
 **Execution security & the MCP client.**
-- **Sandbox** ([srcs/sandbox/sandbox.py](srcs/sandbox/sandbox.py), ~1k lines) — the
+- **Sandbox** ([srcs/sandbox/sandbox.py](srcs/sandbox/sandbox.py), ) — the
   security boundary that runs untrusted, model-generated code. Subprocess isolation,
   AST-level `__dunder__` blocking, import/filesystem allowlists, network kill switch,
   `RLIMIT_AS` memory cap, timeout enforcement, and `final_answer()` as a `BaseException`
@@ -133,9 +132,6 @@ The sandbox ([srcs/sandbox/sandbox.py](srcs/sandbox/sandbox.py)) runs untrusted 
 - **Memory & time caps** — `RLIMIT_AS` bounds RAM (default 512 MB); the parent kills a
   child that overruns the timeout.
 
-`final_answer()` inherits from `BaseException`, so a bare `except Exception` in the model's
-code cannot swallow it. Config is a Pydantic model loadable from JSON (see
-[sandbox_template.json](sandbox_template.json)).
 
 ## MCP tools
 
